@@ -1,0 +1,35 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: app-nginx
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./frontend:/var/www/frontend:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: backend
+    container_name: app-backend
+    restart: unless-stopped
+
+    expose:
+      - "3000"
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: app-certbot
+
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
